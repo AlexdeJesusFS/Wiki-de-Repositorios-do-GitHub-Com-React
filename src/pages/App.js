@@ -15,34 +15,44 @@ function App() {
 
 
   const handleSearchRepo = async () => {
+    try {
+      const {data} = await api.get(`repos/${currentRepo}`)
 
-    const {data} = await api.get(`repos/${currentRepo}`)
+      if (data.id) {
 
-    if(data.id){
+        const isExist = repos.find(repo => repo.id === data.id);
 
-      const isExist = repos.find(repo => repo.id === data.id);
-
-      if(!isExist){
-        setRepos(prev => [...prev, data]);
-        setCurrentRepo('')
-        return
+        if(!isExist){
+          setRepos(prev => [...prev, data]);
+          setCurrentRepo('')
+          return
+        }
       }
-
-    }
-    alert('Repositório não encontrado')
-
-  }
+      alert('Repositório já listado abaixo!');
+    } catch (error) {
+      //verifica se foi encontrado ou houve erro na requisição:
+      console.log('Erro ao buscar respositorio', error);
+      error.response.status === 404 ? alert('Repositorio não existe! Verifique o nome ou procure outro repositório') : alert('Ocorreu um erro!');
+    };
+  };
 
   const handleRemoveRepo = (id) => {
-    console.log('Removendo registro', id);
-
     // utilizar filter.
-  }
+    const newRepo = repos.filter(repo => repo.id !== id);
+    setRepos(newRepo);
+  };
 
 
   return (
     <Container>
       <img src={gitLogo} width={72} height={72} alt="github logo"/>
+      {repos.length < 1 ? (
+          <>
+            <br/>
+            <h3>Pesquise pelo repositório que deseja abaixo da seguinte forma:</h3>
+            <h3>"nome-usario/repositorio"</h3>
+          </>
+        ) : null}
       <Input value={currentRepo} onChange={(e) => setCurrentRepo(e.target.value)} />
       <Button onClick={handleSearchRepo}/>
       {repos.map(repo => <ItemRepo handleRemoveRepo={handleRemoveRepo} repo={repo}/>)}
